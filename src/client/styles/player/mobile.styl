@@ -1,13 +1,19 @@
-.prosses
-  position absolute
-  left .5em
-  padding .5em
-  width calc( 70% - 2.5em )
+section.player
+  position relative
+  margin 0 auto
+  max-width 1400px
+.process
+  display block
+  width 100%
+  margin 0 auto
 
   .video
     background black
     width 100%
-    height 30em
+    height 11.5em
+    iframe
+      width 100%
+      height 100%
   .data
     width calc(100% - 1em)
     background white
@@ -15,13 +21,15 @@
     margin .5em 0
 
     h3#title
-      font-size 1.5em
+      font-size 1.2em
       color negro
       font-weight normal
 
     p
       color azul
       cursor pointer
+      &:hover
+        text-decoration underline
   .info
     background white
     padding .5em
@@ -34,12 +42,11 @@
       font-weight bold
 
 .recommended
-    position absolute
-    right .5em
-    width calc(30% - .5em)
+    width calc(100% - 1em)
     background white
     padding 0 .5em
-    margin .5em 0
+    margin 0 auto
+    display block
 
   article.item
     width 100%

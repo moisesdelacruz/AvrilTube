@@ -7,12 +7,33 @@ gris_mas_claro = #f8f8f8
 
 section
   max-width 1200px
+div.content
+  margin-top 1em
 
 @import "normalize.styl"
 @import "header/mobile.styl"
 @import "view/mobile.styl"
 @import "player/mobile.styl"
 
+@media screen and (min-width 400px)
+  .process .video
+    height 18em
+@media screen and (min-width 500px)
+  .process .video
+    height 22em
+@media screen and (min-width 650px)
+  .process .video
+    height 25em
 @media screen and (min-width 720px)
   @import "header/desktop.styl"
   @import "view/desktop.styl"
+  .process .video
+    height 28em
+@media screen and (min-width 850px)
+  .process .video
+    height 30em
+@media screen and (min-width 950px)
+  .process .video
+    height 35em
+@media screen and (min-width 1000px)
+  @import "player/desktop.styl"
