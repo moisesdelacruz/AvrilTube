@@ -12,7 +12,11 @@ app.set('view engine', 'html')
 // static
 app.use(express.static('public'))
 // routes
-app.get('/', function(req, res){
+app.get('/', (req, res) => {
+  res.render('index')
+})
+
+app.get('/search?:q', (req, res) => {
   res.render('index')
 })
 // server listenign
