@@ -9,7 +9,7 @@ import App from 'src/client/js/views/app'
 import Player from 'src/client/js/views/player'
 import Recommended from 'src/client/js/views/recommended'
 
-const client = youtube.createClient({ key: 'YOUR_KEY' })
+const client = youtube.createClient({ key: 'AIzaSyAsvEZxR2vYOuxh0-gDFV97HRNaFmP9ZqQ' })
 
 class Router extends Backbone.Router {
   get routes () {
@@ -58,7 +58,7 @@ class Router extends Backbone.Router {
 
       this.recommendedCollection.reset()
       this.jsonData = data
-      this.jsonData.items.forEach(this.addVideo2, this)
+      this.jsonData.items.forEach(this.callAddVideoRecommended, this)
     })
   }
 
@@ -73,24 +73,22 @@ class Router extends Backbone.Router {
     client.search(params, (err, data) => {
       this.videos.reset()
       this.jsonData = data
-      this.jsonData.items.forEach(this.addVideo, this)
+      this.jsonData.items.forEach(this.callAddVideo, this)
     })
   }
 
-  addVideo (video) {
-    this.videos.add(new Video({
-      idVideo: video.id.videoId,
-      title: video.snippet.title,
-      description: video.snippet.description,
-      channelId: video.snippet.channelId,
-      channelTitle: video.snippet.channelTitle,
-      publishedAt: video.snippet.publishedAt,
-      image: video.snippet.thumbnails.medium
-    }))
+  callAddVideo (data) {
+    let video = data
+    this.addVideo(video, this.videos)
   }
 
-  addVideo2 (video) {
-    this.recommendedCollection.add(new Video({
+  callAddVideoRecommended (data) {
+    let video = data
+    this.addVideo(video, this.recommendedCollection)
+  }
+
+  addVideo (video, collection) {
+    collection.add(new Video({
       idVideo: video.id.videoId,
       title: video.snippet.title,
       description: video.snippet.description,
