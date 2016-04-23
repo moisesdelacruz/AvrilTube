@@ -5,7 +5,7 @@ import $ from 'jquery'
 
 class VideoView extends Backbone.View {
   get tagName () { return 'article' }
-  get className () { return 'item big' }
+  get className () { return 'item' }
   get events () {
     return {
       'click': 'navigate'
@@ -23,8 +23,11 @@ class VideoView extends Backbone.View {
     return this
   }
 
-  navigate () {
-    console.log('hellow from video')
+  navigate (e) {
+    e.preventDefault()
+    let videoId = this.model.toJSON().idVideo
+    AvrilTube.navigate(`watch?${videoId}`, { trigger: true })
+    AvrilTube.player.model.set(this.model.toJSON())
   }
 }
 

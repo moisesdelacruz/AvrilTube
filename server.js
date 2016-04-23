@@ -19,6 +19,10 @@ app.get('/', (req, res) => {
 app.get('/search?:q', (req, res) => {
   res.render('index')
 })
+
+app.get('/watch?:q', (req, res) => {
+  res.render('index')
+})
 // server listenign
 server.listen(port, '0.0.0.0')
 console.log(`Server running at http://localhost:${port}/`)
