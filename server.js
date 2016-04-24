@@ -16,11 +16,11 @@ app.get('/', (req, res) => {
   res.render('index')
 })
 
-app.get('/results?search_query:q', (req, res) => {
+app.get('/results?:q', (req, res) => {
   res.render('index')
 })
 
-app.get('/watch?v:q', (req, res) => {
+app.get('/watch?:q', (req, res) => {
   res.render('index')
 })
 // server listenign
