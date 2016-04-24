@@ -15,8 +15,8 @@ class Router extends Backbone.Router {
   get routes () {
     return {
       '': 'index',
-      'search?:q': 'search',
-      'watch?:videoId': 'player'
+      'results?search_query:q': 'search',
+      'watch?v:videoId': 'player'
     }
   }
 

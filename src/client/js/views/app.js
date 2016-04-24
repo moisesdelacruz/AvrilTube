@@ -17,7 +17,8 @@ class App extends Backbone.View {
   navigate (e) {
     e.preventDefault()
     let query = $('.form').find('#search').val()
-    AvrilTube.navigate(`search?${query}`, { trigger: true })
+    query = query.replace(/\s/g,"+")
+    AvrilTube.navigate(`results?search_query${query}`, { trigger: true })
   }
 
   home () {
