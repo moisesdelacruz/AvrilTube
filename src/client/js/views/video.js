@@ -8,7 +8,8 @@ class VideoView extends Backbone.View {
   get className () { return 'item' }
   get events () {
     return {
-      'click': 'navigate'
+      'click .image': 'navigate',
+      'click .title': 'navigate'
     }
   }
 
@@ -26,8 +27,7 @@ class VideoView extends Backbone.View {
   navigate (e) {
     e.preventDefault()
     let videoId = this.model.toJSON().idVideo
-    AvrilTube.navigate(`watch?${videoId}`, { trigger: true })
-    AvrilTube.player.model.set(this.model.toJSON())
+    AvrilTube.navigate(`watch?v=${videoId}`, { trigger: true })
   }
 }
 

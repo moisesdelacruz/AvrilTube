@@ -6,11 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "public": "mkdir public views",
-    "copy-files": "cp src/client/*.html views/",
+    "copy-files": "cp src/client/*.html ./ && cp -r src/client/img public/",
     "stylus": "stylus -c -w -o public/index.css src/client/styles/main.styl",
     "build-js": "NODE_PATH=. browserify -t hbsfy -t [ babelify --presets [ es2015 ] ] src/client/js/index.js -o public/index.js",
-    "build": "npm run public && npm run copy-files && npm run stylus && npm run build-js",
-    "start": "node server"
+    "build": "npm run public && npm run copy-files && npm run stylus && npm run build-js"
   },
   "author": "moisesdelacruz",
   "license": "ISC",

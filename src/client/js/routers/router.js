@@ -3,6 +3,7 @@ import $ from 'jquery'
 import youtube from 'youtube-finder'
 import Video from 'src/client/js/models/video'
 import Videos from 'src/client/js/collections/videos'
+import Actual from 'src/client/js/collections/actual'
 import RecommendedCollection from 'src/client/js/collections/recommended'
 import Home from 'src/client/js/views/home'
 import App from 'src/client/js/views/app'
@@ -15,8 +16,8 @@ class Router extends Backbone.Router {
   get routes () {
     return {
       '': 'index',
-      'results?:q': 'search',
-      'watch?:videoId': 'player'
+      'results?search_query=:q': 'search',
+      'watch?v=:videoId': 'player'
     }
   }
 
@@ -24,6 +25,7 @@ class Router extends Backbone.Router {
     this.current = {}
     this.jsonData = {}
     this.videos = new Videos()
+    this.actual = new Actual()
     this.recommendedCollection = new RecommendedCollection()
     this.home = new Home({ collection: this.videos})
     this.recommended = new Recommended({ collection: this.recommendedCollection })
@@ -31,8 +33,7 @@ class Router extends Backbone.Router {
     this.player = new Player({ model: new Video() })
 
     Backbone.history.start({
-      root: '/',
-      pushState: true
+      root: ''
     })
   }
 
@@ -46,6 +47,7 @@ class Router extends Backbone.Router {
 
   player (videoId) {
     console.log(videoId)
+    // Obtener Relacionados..
     let params = {
       part: 'snippet',
       channelId: 'UCC6XuDtfec7DxZdUa7ClFBQ',
@@ -59,6 +61,15 @@ class Router extends Backbone.Router {
       this.recommendedCollection.reset()
       this.jsonData = data
       this.jsonData.items.forEach(this.callAddVideoRecommended, this)
+    })
+    // Obtener Actual..
+    client.search({ part:'snippet', type:'video', q:videoId, maxResults:1 }, (err, data) => {
+      if (err) console.log(err)
+
+      this.actual.reset()
+      this.jsonData = data
+      this.jsonData.items.forEach(this.getVideo, this)
+      AvrilTube.player.model.set(this.actual.toJSON()[0])
     })
   }
 
@@ -75,6 +86,11 @@ class Router extends Backbone.Router {
       this.jsonData = data
       this.jsonData.items.forEach(this.callAddVideo, this)
     })
+  }
+
+  getVideo (data) {
+    let video = data
+    this.addVideo(video, this.actual)
   }
 
   callAddVideo (data) {
