@@ -24023,7 +24023,7 @@ module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":f
     + alias4(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
     + "</h3>\n      <a href=\"https://www.youtube.com/user/"
     + alias4(((helper = (helper = helpers.channelTitle || (depth0 != null ? depth0.channelTitle : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"channelTitle","hash":{},"data":data}) : helper)))
-    + "\">"
+    + "\" target=\"_blank\">"
     + alias4(((helper = (helper = helpers.channelTitle || (depth0 != null ? depth0.channelTitle : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"channelTitle","hash":{},"data":data}) : helper)))
     + "</a>\n    </div>\n    <div class=\"info\">\n      <p class=\"description\">\n        "
     + alias4(((helper = (helper = helpers.description || (depth0 != null ? depth0.description : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"description","hash":{},"data":data}) : helper)))
@@ -24050,7 +24050,7 @@ module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":f
     + alias4(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
     + "\n    </p>\n  </div>\n</a>\n<a href=\"https://www.youtube.com/user/"
     + alias4(((helper = (helper = helpers.channelTitle || (depth0 != null ? depth0.channelTitle : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"channelTitle","hash":{},"data":data}) : helper)))
-    + "\" class=\"channel\">"
+    + "\" class=\"channel\" target=\"_blank\">"
     + alias4(((helper = (helper = helpers.channelTitle || (depth0 != null ? depth0.channelTitle : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"channelTitle","hash":{},"data":data}) : helper)))
     + "</a>\n";
 },"useData":true});
