@@ -2154,14 +2154,103 @@ var substr = 'ab'.substr(-1) === 'b'
 }).call(this,require('_process'))
 },{"_process":4}],4:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
 var queue = [];
 var draining = false;
 var currentQueue;
 var queueIndex = -1;
 
 function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
     draining = false;
     if (currentQueue.length) {
         queue = currentQueue.concat(queue);
@@ -2177,7 +2266,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
+    var timeout = runTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -2194,7 +2283,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
+    runClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -2206,7 +2295,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
+        runTimeout(drainQueue);
     }
 };
 
@@ -10345,7 +10434,7 @@ module.exports = require("handlebars/runtime")["default"];
 
 },{"handlebars/runtime":50}],52:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.2.3
+ * jQuery JavaScript Library v2.2.4
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -10355,7 +10444,7 @@ module.exports = require("handlebars/runtime")["default"];
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2016-04-05T19:26Z
+ * Date: 2016-05-20T17:23Z
  */
 
 (function( global, factory ) {
@@ -10411,7 +10500,7 @@ var support = {};
 
 
 var
-	version = "2.2.3",
+	version = "2.2.4",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -15352,13 +15441,14 @@ jQuery.Event.prototype = {
 	isDefaultPrevented: returnFalse,
 	isPropagationStopped: returnFalse,
 	isImmediatePropagationStopped: returnFalse,
+	isSimulated: false,
 
 	preventDefault: function() {
 		var e = this.originalEvent;
 
 		this.isDefaultPrevented = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.preventDefault();
 		}
 	},
@@ -15367,7 +15457,7 @@ jQuery.Event.prototype = {
 
 		this.isPropagationStopped = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.stopPropagation();
 		}
 	},
@@ -15376,7 +15466,7 @@ jQuery.Event.prototype = {
 
 		this.isImmediatePropagationStopped = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.stopImmediatePropagation();
 		}
 
@@ -16306,19 +16396,6 @@ function getWidthOrHeight( elem, name, extra ) {
 		val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
 		styles = getStyles( elem ),
 		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
-
-	// Support: IE11 only
-	// In IE 11 fullscreen elements inside of an iframe have
-	// 100x too small dimensions (gh-1764).
-	if ( document.msFullscreenElement && window.top !== window ) {
-
-		// Support: IE11 only
-		// Running getBoundingClientRect on a disconnected node
-		// in IE throws an error.
-		if ( elem.getClientRects().length ) {
-			val = Math.round( elem.getBoundingClientRect()[ name ] * 100 );
-		}
-	}
 
 	// Some non-html elements return undefined for offsetWidth, so check for null/undefined
 	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
@@ -18210,6 +18287,7 @@ jQuery.extend( jQuery.event, {
 	},
 
 	// Piggyback on a donor event to simulate a different one
+	// Used only for `focus(in | out)` events
 	simulate: function( type, elem, event ) {
 		var e = jQuery.extend(
 			new jQuery.Event(),
@@ -18217,27 +18295,10 @@ jQuery.extend( jQuery.event, {
 			{
 				type: type,
 				isSimulated: true
-
-				// Previously, `originalEvent: {}` was set here, so stopPropagation call
-				// would not be triggered on donor event, since in our own
-				// jQuery.event.stopPropagation function we had a check for existence of
-				// originalEvent.stopPropagation method, so, consequently it would be a noop.
-				//
-				// But now, this "simulate" function is used only for events
-				// for which stopPropagation() is noop, so there is no need for that anymore.
-				//
-				// For the 1.x branch though, guard for "click" and "submit"
-				// events is still used, but was moved to jQuery.event.stopPropagation function
-				// because `originalEvent` should point to the original event for the constancy
-				// with other events and for more focused logic
 			}
 		);
 
 		jQuery.event.trigger( e, null, elem );
-
-		if ( e.isDefaultPrevented() ) {
-			event.preventDefault();
-		}
 	}
 
 } );
@@ -22328,7 +22389,7 @@ for (var key in requestBase) {
 Request.prototype.abort = function(){
   if (this.aborted) return;
   this.aborted = true;
-  this.xhr.abort();
+  this.xhr && this.xhr.abort();
   this.clearTimeout();
   this.emit('abort');
   return this;
@@ -23080,7 +23141,9 @@ module.exports = request;
  * Expose `Emitter`.
  */
 
-module.exports = Emitter;
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
 
 /**
  * Initialize a new `Emitter`.
@@ -23291,7 +23354,7 @@ var Actual = function (_Backbone$Collection) {
   function Actual(options) {
     _classCallCheck(this, Actual);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Actual).call(this, options));
+    var _this = _possibleConstructorReturn(this, (Actual.__proto__ || Object.getPrototypeOf(Actual)).call(this, options));
 
     _this.model = _video2.default;
     return _this;
@@ -23331,7 +23394,7 @@ var Recommended = function (_Backbone$Collection) {
   function Recommended(options) {
     _classCallCheck(this, Recommended);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Recommended).call(this, options));
+    var _this = _possibleConstructorReturn(this, (Recommended.__proto__ || Object.getPrototypeOf(Recommended)).call(this, options));
 
     _this.model = _video2.default;
     return _this;
@@ -23371,7 +23434,7 @@ var Videos = function (_Backbone$Collection) {
   function Videos(options) {
     _classCallCheck(this, Videos);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Videos).call(this, options));
+    var _this = _possibleConstructorReturn(this, (Videos.__proto__ || Object.getPrototypeOf(Videos)).call(this, options));
 
     _this.model = _video2.default;
     return _this;
@@ -23430,7 +23493,7 @@ var Video = function (_Backbone$Model) {
   function Video() {
     _classCallCheck(this, Video);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Video).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Video.__proto__ || Object.getPrototypeOf(Video)).apply(this, arguments));
   }
 
   return Video;
@@ -23507,7 +23570,7 @@ var Router = function (_Backbone$Router) {
   function Router() {
     _classCallCheck(this, Router);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Router).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).apply(this, arguments));
   }
 
   _createClass(Router, [{
@@ -23607,13 +23670,14 @@ var Router = function (_Backbone$Router) {
   }, {
     key: 'addVideo',
     value: function addVideo(video, collection) {
+      var date = new Date(video.snippet.publishedAt);
       collection.add(new _video2.default({
         idVideo: video.id.videoId,
         title: video.snippet.title,
         description: video.snippet.description,
         channelId: video.snippet.channelId,
         channelTitle: video.snippet.channelTitle,
-        publishedAt: video.snippet.publishedAt,
+        publishedAt: date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear(),
         image: video.snippet.thumbnails.medium
       }));
     }
@@ -23664,7 +23728,7 @@ var App = function (_Backbone$View) {
   function App() {
     _classCallCheck(this, App);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(App).apply(this, arguments));
+    return _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).apply(this, arguments));
   }
 
   _createClass(App, [{
@@ -23740,7 +23804,7 @@ var Home = function (_Backbone$View) {
   function Home() {
     _classCallCheck(this, Home);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Home).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Home.__proto__ || Object.getPrototypeOf(Home)).apply(this, arguments));
   }
 
   _createClass(Home, [{
@@ -23823,7 +23887,7 @@ var Player = function (_Backbone$View) {
   function Player() {
     _classCallCheck(this, Player);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Player).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).apply(this, arguments));
   }
 
   _createClass(Player, [{
@@ -23886,7 +23950,7 @@ var Recommended = function (_Backbone$View) {
   function Recommended() {
     _classCallCheck(this, Recommended);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Recommended).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Recommended.__proto__ || Object.getPrototypeOf(Recommended)).apply(this, arguments));
   }
 
   _createClass(Recommended, [{
@@ -23963,7 +24027,7 @@ var VideoView = function (_Backbone$View) {
   function VideoView() {
     _classCallCheck(this, VideoView);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(VideoView).apply(this, arguments));
+    return _possibleConstructorReturn(this, (VideoView.__proto__ || Object.getPrototypeOf(VideoView)).apply(this, arguments));
   }
 
   _createClass(VideoView, [{

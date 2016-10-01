@@ -104,13 +104,14 @@ class Router extends Backbone.Router {
   }
 
   addVideo (video, collection) {
+    let date = new Date(video.snippet.publishedAt)
     collection.add(new Video({
       idVideo: video.id.videoId,
       title: video.snippet.title,
       description: video.snippet.description,
       channelId: video.snippet.channelId,
       channelTitle: video.snippet.channelTitle,
-      publishedAt: video.snippet.publishedAt,
+      publishedAt: `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`,
       image: video.snippet.thumbnails.medium
     }))
   }
